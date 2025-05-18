@@ -28,26 +28,6 @@ Step into the next dimension of AI-powered 3D model generation. This cutting-edg
 - **State Management**: React Hooks
 - **Styling**: Tailwind CSS with custom animations
 
-### 🚀 Getting Started
-
-1. **Clone the Repository**
-   ```bash
-   git clone https://github.com/ankanz1/Ai-3D-MODEL.git
-   cd Ai-3D-MODEL
-   ```
-
-2. **Install Dependencies**
-   ```bash
-   pnpm install
-   ```
-
-3. **Run the Development Server**
-   ```bash
-   pnpm dev
-   ```
-
-4. **Open Your Browser**
-   Navigate to `http://localhost:3000`
 
 ### 🎯 Usage
 
