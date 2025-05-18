@@ -89,6 +89,19 @@ export default function Rodin() {
               const proxyUrl = `/api/proxy-download?url=${encodeURIComponent(glbFile.url)}`
               setModelUrl(proxyUrl)
               setDownloadUrl(glbFile.url)
+              
+              // Update search history with the generated URLs
+              if (result?.prompt) {
+                const keywords = result.prompt.toLowerCase().split(/\s+/).filter(word => word.length > 3)
+                await saveSearchHistory(
+                  options.tier,
+                  keywords,
+                  result.prompt,
+                  proxyUrl,
+                  glbFile.url
+                )
+              }
+              
               setIsLoading(false)
               setShowPromptContainer(false)
             } else {
@@ -157,17 +170,14 @@ export default function Rodin() {
 
       setResult(data)
 
-      // Save to search history
+      // Save to search history with initial empty URLs
       if (values.prompt) {
         const keywords = values.prompt.toLowerCase().split(/\s+/).filter(word => word.length > 3)
-        await saveSearchHistory({
-          modelType: options.tier,
+        await saveSearchHistory(
+          options.tier,
           keywords,
-          prompt: values.prompt,
-          timestamp: new Date().toISOString(),
-          modelUrl: modelUrl || undefined,
-          downloadUrl: downloadUrl || undefined,
-        })
+          values.prompt
+        )
       }
 
       // Start polling for status
