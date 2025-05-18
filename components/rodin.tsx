@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { ExternalLink, Download, ArrowLeft } from "lucide-react"
 import type { FormValues } from "@/lib/form-schema"
-import { submitRodinJob, checkJobStatus, downloadModel } from "@/lib/api-service"
+import { submitRodinJob, checkJobStatus, downloadModel, saveSearchHistory } from "@/lib/api-service"
 import ModelViewer from "./model-viewer"
 import Form from "./form"
 import StatusIndicator from "./status-indicator"
@@ -156,6 +156,19 @@ export default function Rodin() {
       console.log("Generation response:", data)
 
       setResult(data)
+
+      // Save to search history
+      if (values.prompt) {
+        const keywords = values.prompt.toLowerCase().split(/\s+/).filter(word => word.length > 3)
+        await saveSearchHistory({
+          modelType: options.tier,
+          keywords,
+          prompt: values.prompt,
+          timestamp: new Date().toISOString(),
+          modelUrl: modelUrl || undefined,
+          downloadUrl: downloadUrl || undefined,
+        })
+      }
 
       // Start polling for status
       if (data.jobs && data.jobs.subscription_key && data.uuid) {

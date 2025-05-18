@@ -46,3 +46,31 @@ export async function downloadModel(taskUuid: string) {
 
   return await response.json()
 }
+
+export async function saveSearchHistory(data: {
+  modelType: string;
+  keywords: string[];
+  prompt: string;
+  timestamp: string;
+  modelUrl?: string;
+  downloadUrl?: string;
+}) {
+  try {
+    const response = await fetch('/api/history', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to save search history');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error saving search history:', error);
+    throw error;
+  }
+}
