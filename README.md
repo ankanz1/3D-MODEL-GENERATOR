@@ -9,6 +9,8 @@
   <img src="https://img.shields.io/badge/Three.js-000000?style=for-the-badge&logo=three.js&logoColor=white" />
 </div>
 
+---
+
 ## 🌌 Welcome to the Future of 3D Generation
 
 Step into the next dimension of AI-powered 3D model generation. This cutting-edge application harnesses the power of advanced AI to transform your ideas into stunning 3D models in real-time.
