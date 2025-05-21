@@ -137,34 +137,39 @@ export function SearchHistory() {
   }
 
   return (
-    <div className="fixed top-4 right-4 z-50">
+    <div className="fixed left-0 top-0 h-full z-50">
       <Popover>
         <PopoverTrigger asChild>
           <Button 
             variant="ghost" 
             size="icon" 
-            className="h-10 w-10 bg-black/50 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300"
+            className="h-10 w-10 mt-4 ml-4 bg-black/50 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300"
           >
             <History className="h-5 w-5 text-white" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-96 p-0 bg-black/80 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl" align="end">
-          <div className="p-4">
-            <div className="flex justify-between items-center mb-4">
-              <h4 className="font-medium text-lg bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-                Search History
-              </h4>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => fetchHistory()}
-                className="h-8 px-3 bg-white/5 hover:bg-white/10 transition-all duration-300"
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Refresh
-              </Button>
+        <PopoverContent 
+          className="w-80 h-screen p-0 bg-[#202123] border-r border-white/10 rounded-none shadow-2xl" 
+          align="start"
+          side="right"
+        >
+          <div className="flex flex-col h-full">
+            <div className="p-4 border-b border-white/10">
+              <div className="flex justify-between items-center">
+                <h4 className="font-medium text-lg text-white">
+                  Search History
+                </h4>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => fetchHistory()}
+                  className="h-8 px-3 hover:bg-white/10 transition-all duration-300"
+                >
+                  <RefreshCw className="h-4 w-4 text-white" />
+                </Button>
+              </div>
             </div>
-            <ScrollArea className="h-[400px] pr-4">
+            <ScrollArea className="flex-1">
               {isLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
@@ -178,60 +183,43 @@ export function SearchHistory() {
                   No search history yet
                 </p>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-1 p-2">
                   {searchHistory.map((item, index) => (
                     <div 
                       key={index} 
-                      className="border border-white/10 rounded-lg p-4 space-y-3 bg-white/5 hover:bg-white/10 transition-all duration-300"
+                      className="group flex items-center gap-3 p-3 rounded-lg hover:bg-white/10 transition-all duration-300 cursor-pointer"
+                      onClick={() => handleViewModel(item)}
                     >
-                      <div className="flex justify-between items-start">
-                        <p className="text-sm font-medium text-white">{item.modelType}</p>
-                        <div className="flex gap-2">
-                          {item.downloadUrl && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 bg-white/5 hover:bg-white/10 transition-all duration-300"
-                              onClick={() => handleDownload(item)}
-                            >
-                              <Download className="h-4 w-4 text-white" />
-                            </Button>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 bg-white/5 hover:bg-white/10 transition-all duration-300"
-                            onClick={() => handleViewModel(item)}
-                          >
-                            <Eye className="h-4 w-4 text-white" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 bg-white/5 hover:bg-white/10 transition-all duration-300"
-                            onClick={() => handleEditModel(item)}
-                          >
-                            <Edit2 className="h-4 w-4 text-white" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 bg-white/5 hover:bg-white/10 transition-all duration-300"
-                            onClick={() => handleDeleteHistory(item)}
-                          >
-                            <X className="h-4 w-4 text-white" />
-                          </Button>
-                        </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-white truncate">{item.modelType}</p>
+                        <p className="text-xs text-white/60 truncate">
+                          {item.keywords.join(', ')}
+                        </p>
                       </div>
-                      <p className="text-xs text-white/60">
-                        Keywords: {item.keywords.join(', ')}
-                      </p>
-                      <p className="text-xs text-white/60 line-clamp-2">
-                        Prompt: {item.prompt}
-                      </p>
-                      <p className="text-xs text-white/40">
-                        {formatTimestamp(item.timestamp)}
-                      </p>
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 hover:bg-white/10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditModel(item);
+                          }}
+                        >
+                          <Edit2 className="h-4 w-4 text-white" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 hover:bg-white/10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteHistory(item);
+                          }}
+                        >
+                          <X className="h-4 w-4 text-white" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -243,9 +231,9 @@ export function SearchHistory() {
 
       {/* View Model Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-3xl bg-black/90 backdrop-blur-md border border-white/10">
+        <DialogContent className="max-w-3xl bg-[#343541] border border-white/10">
           <DialogHeader>
-            <DialogTitle className="text-xl bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+            <DialogTitle className="text-xl text-white">
               View Model
             </DialogTitle>
           </DialogHeader>
@@ -271,59 +259,55 @@ export function SearchHistory() {
                     </p>
                     <p className="text-sm text-white/80">{selectedModel.prompt}</p>
                   </div>
-                  {selectedModel.downloadUrl && (
-                    <div className="flex flex-col items-end gap-3">
-                      <Button
-                        onClick={() => handleDownload(selectedModel)}
-                        className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white transition-all duration-300"
-                        size="lg"
-                      >
-                        <Download className="h-5 w-5 mr-2" />
-                        Download Model
-                      </Button>
-                      <div className="text-xs text-white/40">
-                        <p>Generated: {formatTimestamp(selectedModel.timestamp)}</p>
-                        <p>Click to download the 3D model file</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                
-                {selectedModel.downloadUrl && (
-                  <div className="border border-white/10 rounded-lg p-6 bg-white/5">
-                    <h4 className="font-medium mb-4 text-lg bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-                      Download Information
-                    </h4>
-                    <div className="grid grid-cols-2 gap-6 text-sm">
-                      <div>
-                        <p className="text-white/40">Model Type</p>
-                        <p className="font-medium text-white">{selectedModel.modelType}</p>
-                      </div>
-                      <div>
-                        <p className="text-white/40">Format</p>
-                        <p className="font-medium text-white">GLB/GLTF</p>
-                      </div>
-                      <div>
-                        <p className="text-white/40">Generated From</p>
-                        <p className="font-medium text-white">{selectedModel.prompt}</p>
-                      </div>
-                      <div>
-                        <p className="text-white/40">Keywords</p>
-                        <p className="font-medium text-white">{selectedModel.keywords.join(', ')}</p>
-                      </div>
-                    </div>
-                    <div className="mt-6">
-                      <Button
-                        onClick={() => handleDownload(selectedModel)}
-                        variant="outline"
-                        className="w-full border-white/20 hover:bg-white/10 transition-all duration-300"
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Download 3D Model
-                      </Button>
+                  <div className="flex flex-col items-end gap-3">
+                    <Button
+                      onClick={() => handleDownload(selectedModel)}
+                      className="w-full bg-[#10a37f] hover:bg-[#0d8c6d] text-white transition-all duration-300"
+                      size="lg"
+                    >
+                      <Download className="h-5 w-5 mr-2" />
+                      Download Model
+                    </Button>
+                    <div className="text-xs text-white/40">
+                      <p>Generated: {formatTimestamp(selectedModel.timestamp)}</p>
+                      <p>Click to download the 3D model file</p>
                     </div>
                   </div>
-                )}
+                </div>
+                
+                <div className="border border-white/10 rounded-lg p-6 bg-white/5">
+                  <h4 className="font-medium mb-4 text-lg text-white">
+                    Download Information
+                  </h4>
+                  <div className="grid grid-cols-2 gap-6 text-sm">
+                    <div>
+                      <p className="text-white/40">Model Type</p>
+                      <p className="font-medium text-white">{selectedModel.modelType}</p>
+                    </div>
+                    <div>
+                      <p className="text-white/40">Format</p>
+                      <p className="font-medium text-white">GLB/GLTF</p>
+                    </div>
+                    <div>
+                      <p className="text-white/40">Generated From</p>
+                      <p className="font-medium text-white">{selectedModel.prompt}</p>
+                    </div>
+                    <div>
+                      <p className="text-white/40">Keywords</p>
+                      <p className="font-medium text-white">{selectedModel.keywords.join(', ')}</p>
+                    </div>
+                  </div>
+                  <div className="mt-6">
+                    <Button
+                      onClick={() => handleDownload(selectedModel)}
+                      variant="outline"
+                      className="w-full border-white/20 hover:bg-white/10 transition-all duration-300 text-white"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download 3D Model
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -332,9 +316,9 @@ export function SearchHistory() {
 
       {/* Edit Model Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl bg-black/90 backdrop-blur-md border border-white/10">
+        <DialogContent className="max-w-2xl bg-[#343541] border border-white/10">
           <DialogHeader>
-            <DialogTitle className="text-xl bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+            <DialogTitle className="text-xl text-white">
               Edit Model
             </DialogTitle>
           </DialogHeader>
@@ -346,7 +330,7 @@ export function SearchHistory() {
                   type="text"
                   value={editedModel.modelType}
                   onChange={(e) => setEditedModel({ ...editedModel, modelType: e.target.value })}
-                  className="bg-white/5 border-white/20 text-white"
+                  className="bg-[#40414f] border-white/20 text-white"
                 />
               </div>
               <div className="space-y-3">
@@ -354,7 +338,7 @@ export function SearchHistory() {
                 <Textarea
                   value={editedModel.prompt}
                   onChange={(e) => setEditedModel({ ...editedModel, prompt: e.target.value })}
-                  className="h-24 bg-white/5 border-white/20 text-white"
+                  className="h-24 bg-[#40414f] border-white/20 text-white"
                 />
               </div>
               <div className="space-y-3">
@@ -363,35 +347,33 @@ export function SearchHistory() {
                   {editedModel.keywords.map((keyword, index) => (
                     <span
                       key={index}
-                      className="px-3 py-1 bg-white/10 rounded-full text-sm text-white"
+                      className="px-3 py-1 bg-[#40414f] rounded-full text-sm text-white"
                     >
                       {keyword}
                     </span>
                   ))}
                 </div>
               </div>
-              {editedModel.downloadUrl && (
-                <div className="pt-2">
-                  <Button
-                    onClick={() => handleDownload(editedModel)}
-                    className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white transition-all duration-300"
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Model
-                  </Button>
-                </div>
-              )}
+              <div className="pt-2">
+                <Button
+                  onClick={() => handleDownload(editedModel)}
+                  className="w-full bg-[#10a37f] hover:bg-[#0d8c6d] text-white transition-all duration-300"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Model
+                </Button>
+              </div>
               <div className="flex justify-end gap-3">
                 <Button
                   variant="outline"
                   onClick={() => setIsEditDialogOpen(false)}
-                  className="border-white/20 hover:bg-white/10 transition-all duration-300"
+                  className="border-white/20 hover:bg-white/10 transition-all duration-300 text-white"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleSaveEdit}
-                  className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white transition-all duration-300"
+                  className="bg-[#10a37f] hover:bg-[#0d8c6d] text-white transition-all duration-300"
                 >
                   Save Changes
                 </Button>
