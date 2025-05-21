@@ -1,6 +1,7 @@
 import type React from "react"
 import { Geist } from "next/font/google"
 import "./globals.css"
+import { SearchHistory } from "@/components/search-history"
 
 const geist = Geist({
   subsets: ["latin"],
@@ -18,7 +19,12 @@ export default function RootLayout({
         <title>3D Model Generator</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
       </head>
-      <body className="bg-black text-white">{children}</body>
+      <body className="bg-black text-white min-h-screen">
+        <div className="relative">
+          <SearchHistory />
+          {children}
+        </div>
+      </body>
     </html>
   )
 }

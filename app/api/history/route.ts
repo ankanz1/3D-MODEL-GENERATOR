@@ -1,97 +1,133 @@
 import { NextResponse } from "next/server";
 import { cookies } from 'next/headers';
 
-// In-memory storage for demo purposes
-// In a production app, you would use a database
-let searchHistory: any[] = [];
+interface HistoryItem {
+  id: string;
+  modelType: string;
+  keywords: string[];
+  prompt: string;
+  modelUrl?: string;
+  downloadUrl?: string;
+  timestamp: string;
+}
+
+const HISTORY_COOKIE = 'search_history';
+const MAX_HISTORY_ITEMS = 50;
 
 export async function GET() {
   try {
-    // Get history from cookies if available
     const cookieStore = cookies();
-    const historyCookie = cookieStore.get('searchHistory');
+    const historyCookie = cookieStore.get(HISTORY_COOKIE);
     
-    if (historyCookie) {
-      try {
-        searchHistory = JSON.parse(historyCookie.value);
-      } catch (e) {
-        console.error("Error parsing history cookie:", e);
-        searchHistory = [];
-      }
+    if (!historyCookie) {
+      return NextResponse.json([]);
     }
-    
-    return NextResponse.json(searchHistory);
+
+    const history: HistoryItem[] = JSON.parse(decodeURIComponent(historyCookie.value));
+    return NextResponse.json(history);
   } catch (error) {
-    console.error("Error fetching history:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch history" },
-      { status: 500 }
-    );
+    console.error('Error fetching history:', error);
+    return NextResponse.json({ error: 'Failed to fetch history' }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const data = await request.json();
+    const cookieStore = cookies();
+    const historyCookie = cookieStore.get(HISTORY_COOKIE);
     
-    // Add timestamp to the search
-    const searchEntry = {
-      ...data,
-      id: crypto.randomUUID(), // Add unique ID
-      timestamp: new Date().toISOString(),
-    };
-
-    // Add to the beginning of the array
-    searchHistory.unshift(searchEntry);
-
-    // Keep only the last 50 searches
-    if (searchHistory.length > 50) {
-      searchHistory = searchHistory.slice(0, 50);
+    const newItem: HistoryItem = await request.json();
+    newItem.id = crypto.randomUUID();
+    
+    let history: HistoryItem[] = [];
+    if (historyCookie) {
+      history = JSON.parse(decodeURIComponent(historyCookie.value));
     }
 
-    // Save to cookies
-    const cookieStore = cookies();
-    cookieStore.set('searchHistory', JSON.stringify(searchHistory), {
-      httpOnly: true,
+    // Add new item to the beginning of the array
+    history.unshift(newItem);
+
+    // Keep only the most recent items
+    if (history.length > MAX_HISTORY_ITEMS) {
+      history = history.slice(0, MAX_HISTORY_ITEMS);
+    }
+
+    // Save updated history
+    cookieStore.set(HISTORY_COOKIE, encodeURIComponent(JSON.stringify(history)), {
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+      path: '/',
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax', // Changed from 'strict' to 'lax' for better compatibility
-      maxAge: 60 * 60 * 24 * 7, // 1 week
-      path: '/', // Ensure cookie is available across all paths
+      sameSite: 'lax',
     });
 
-    return NextResponse.json(searchEntry);
+    return NextResponse.json(newItem);
   } catch (error) {
-    console.error("Error saving history:", error);
-    return NextResponse.json(
-      { error: "Failed to save history" },
-      { status: 500 }
-    );
+    console.error('Error saving history:', error);
+    return NextResponse.json({ error: 'Failed to save history' }, { status: 500 });
+  }
+}
+
+export async function PUT(request: Request) {
+  try {
+    const cookieStore = cookies();
+    const historyCookie = cookieStore.get(HISTORY_COOKIE);
+    
+    if (!historyCookie) {
+      return NextResponse.json({ error: 'No history found' }, { status: 404 });
+    }
+
+    const updatedItem: HistoryItem = await request.json();
+    let history: HistoryItem[] = JSON.parse(decodeURIComponent(historyCookie.value));
+
+    // Find and update the item
+    const index = history.findIndex(item => item.id === updatedItem.id);
+    if (index === -1) {
+      return NextResponse.json({ error: 'Item not found' }, { status: 404 });
+    }
+
+    history[index] = { ...history[index], ...updatedItem };
+
+    // Save updated history
+    cookieStore.set(HISTORY_COOKIE, encodeURIComponent(JSON.stringify(history)), {
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+      path: '/',
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+    });
+
+    return NextResponse.json(updatedItem);
+  } catch (error) {
+    console.error('Error updating history:', error);
+    return NextResponse.json({ error: 'Failed to update history' }, { status: 500 });
   }
 }
 
 export async function DELETE(request: Request) {
   try {
-    const { id } = await request.json();
-    
-    // Remove the item from history
-    searchHistory = searchHistory.filter(item => item.id !== id);
-    
-    // Update cookies
     const cookieStore = cookies();
-    cookieStore.set('searchHistory', JSON.stringify(searchHistory), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax', // Changed from 'strict' to 'lax' for better compatibility
-      maxAge: 60 * 60 * 24 * 7, // 1 week
-      path: '/', // Ensure cookie is available across all paths
-    });
+    const historyCookie = cookieStore.get(HISTORY_COOKIE);
     
+    if (!historyCookie) {
+      return NextResponse.json({ error: 'No history found' }, { status: 404 });
+    }
+
+    const { id } = await request.json();
+    let history: HistoryItem[] = JSON.parse(decodeURIComponent(historyCookie.value));
+
+    // Remove the item
+    history = history.filter(item => item.id !== id);
+
+    // Save updated history
+    cookieStore.set(HISTORY_COOKIE, encodeURIComponent(JSON.stringify(history)), {
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+      path: '/',
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+    });
+
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error deleting history item:", error);
-    return NextResponse.json(
-      { error: "Failed to delete history item" },
-      { status: 500 }
-    );
+    console.error('Error deleting history:', error);
+    return NextResponse.json({ error: 'Failed to delete history' }, { status: 500 });
   }
 } 

@@ -47,21 +47,27 @@ export async function downloadModel(taskUuid: string) {
   return await response.json()
 }
 
-export async function saveSearchHistory(data: {
-  modelType: string;
-  keywords: string[];
-  prompt: string;
-  timestamp: string;
-  modelUrl?: string;
-  downloadUrl?: string;
-}) {
+export async function saveSearchHistory(
+  modelType: string,
+  keywords: string[],
+  prompt: string,
+  modelUrl?: string,
+  downloadUrl?: string
+) {
   try {
     const response = await fetch('/api/history', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        modelType,
+        keywords,
+        prompt,
+        modelUrl,
+        downloadUrl,
+        timestamp: new Date().toISOString(),
+      }),
     });
 
     if (!response.ok) {
